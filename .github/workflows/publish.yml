@@ -38,7 +38,7 @@ jobs:
       - name: Assemble site
         run: |
           mkdir _site
-          cp -r index.html loi.html comparison.html founders-insert.html founders-detail.html CNAME robots.txt assets versions _site/
+          cp -r index.html loi.html comparison.html founders-insert.html founders-detail.html CNAME robots.txt assets data versions _site/
 
       - name: Build PDFs (fails the publish unless every document has its exact pages, versioned, clean)
         run: python3 tools/build-pdf.py --out _site --archive | tee build.log

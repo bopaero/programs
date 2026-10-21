@@ -6,9 +6,9 @@
   the hours its matching share provides, 3% yearly depreciation, and only aircraft
   with FIKI, air conditioning and the matching bop aircraft's trip payload.
   Every figure is live: the bop Aero shares come from BOTH costings (sf50program and
-  sr22tprogram .bopaero.com) and the pre-owned aircraft from data/comparison.json, which
-  (with assets/comparison.js) still lives in the SF50 repo, edited in the costing editor at
-  /comparison. Moved to programs.bopaero.com 2026-10-21. Wording is edited here. The PDF
+  sr22tprogram .bopaero.com) and the pre-owned aircraft from data/comparison.json in this
+  repo (edited at the admin Worker's /comparison), through assets/comparison.js. Moved to
+  programs.bopaero.com 2026-10-21. Wording is edited here. The PDF
   is rebuilt on every push and whenever a source changes (.github/workflows/refresh.yml).
 -->
 <html lang="en">
@@ -70,7 +70,7 @@ ul.points b { color: var(--navy); }
 <main id="doc"><noscript><p class="err">This page needs JavaScript to display.</p></noscript></main>
 <script src="https://sf50program.bopaero.com/assets/costing.js"></script>
 <script src="https://sr22tprogram.bopaero.com/assets/costing.js"></script>
-<script src="https://sf50program.bopaero.com/assets/comparison.js"></script>
+<script src="assets/comparison.js"></script>
 <script>
 var SR22T_SITE = 'https://sr22tprogram.bopaero.com', SF50_SITE = 'https://sf50program.bopaero.com';
 function money(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
@@ -155,7 +155,7 @@ function render(sf, sr, cmpSrc) {
   document.documentElement.setAttribute('data-rendered', c.version);   // build-pdf.py waits for this
 }
 function getJson(u) { return fetch(u, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error(u + ' HTTP ' + r.status); return r.json(); }); }
-Promise.all([getJson(SF50_SITE + '/data/costing.json?t=' + Date.now()), getJson(SR22T_SITE + '/data/costing.json?t=' + Date.now()), getJson(SF50_SITE + '/data/comparison.json?t=' + Date.now())])
+Promise.all([getJson(SF50_SITE + '/data/costing.json?t=' + Date.now()), getJson(SR22T_SITE + '/data/costing.json?t=' + Date.now()), getJson('data/comparison.json')])
   .then(function (x) {
     if (!window.SR22TCosting) throw new Error('the SR22T costing library did not load');
     render(x[0], x[1], x[2]);

@@ -1,0 +1,6 @@
+# Deploys the retired sf50-costing Worker as a redirect to bopaero-admin (2026-10-21).
+name = "sf50-costing"
+main = "worker.js"
+compatibility_date = "2026-09-01"
+workers_dev = true
+preview_urls = false

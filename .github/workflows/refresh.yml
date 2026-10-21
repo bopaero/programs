@@ -1,8 +1,8 @@
 name: Refresh
 
-# The documents here are built from sources in OTHER repos: the SF50 costing and the
-# comparison data (bopaero/sf50Program) and the SR22T costing (bopaero/sr22tProgram).
-# A publish there does not push here, so this checks every 15 minutes whether any live
+# The documents here are built from the costings in OTHER repos: SF50 (bopaero/sf50Program)
+# and SR22T (bopaero/sr22tProgram). The comparison data lives here, so its publish pushes
+# here and runs Publish directly. A costing publish does not push here, so this checks every 15 minutes whether any live
 # source is newer than the one this site was last built from (data/build.json) and, if
 # so, runs Publish. Only this repo's own GITHUB_TOKEN is involved (Raymond prefers no
 # new long-lived tokens; decided 2026-10-16).
@@ -26,8 +26,8 @@ jobs:
         run: |
           t=$(date +%s)
           v() { curl -fsS "$1?t=$t" | python3 -c "import json,sys;print(json.load(sys.stdin)['version'])"; }
-          live="sf50=$(v https://sf50program.bopaero.com/data/costing.json) sr22t=$(v https://sr22tprogram.bopaero.com/data/costing.json) comparison=$(v https://sf50program.bopaero.com/data/comparison.json)"
-          built=$(curl -fsS "https://programs.bopaero.com/data/build.json?t=$t" | python3 -c "import json,sys;b=json.load(sys.stdin);print('sf50=%s sr22t=%s comparison=%s'%(b.get('sf50'),b.get('sr22t'),b.get('comparison')))" || echo "unknown")
+          live="sf50=$(v https://sf50program.bopaero.com/data/costing.json) sr22t=$(v https://sr22tprogram.bopaero.com/data/costing.json)"
+          built=$(curl -fsS "https://programs.bopaero.com/data/build.json?t=$t" | python3 -c "import json,sys;b=json.load(sys.stdin);print('sf50=%s sr22t=%s'%(b.get('sf50'),b.get('sr22t')))" || echo "unknown")
           echo "live:  $live"
           echo "built: $built"
           case "$live" in *=\ *|*=) echo "Could not read a live source"; exit 1;; esac

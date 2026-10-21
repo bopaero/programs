@@ -1,0 +1,27 @@
+name = "bopaero-admin"
+main = "worker.js"
+compatibility_date = "2026-09-01"
+workers_dev = true
+preview_urls = false
+
+# The editor pages are bundled into the Worker as strings
+[[rules]]
+type = "Text"
+globs = ["**/*.html"]
+
+[vars]
+# compilotrc@mac.com = the Cloudflare account login on the Access page (Raymond, 2026-10-02)
+ALLOWED_EMAILS = "compilotrc@mac.com,raymond@bopaero.com"
+# Cloudflare Access on this workers.dev hostname. Neither value is secret. Until both are
+# set, the Worker refuses every request (fails closed).
+ACCESS_TEAM_DOMAIN = "calm-field-898f.cloudflareaccess.com"
+ACCESS_AUD = ""
+
+# Replaces the sf50-costing Worker (2026-10-21). Bundles the SF50 and SR22T editor pages and
+# costing.js from ../../sf50Program and ../../sr22tProgram: deploy with both repos checked out
+# beside this one.
+#
+# Secret (never in these public repos):
+#   GITHUB_TOKEN — ONE fine-grained token on bopaero/sf50Program, bopaero/sr22tProgram and
+#                  bopaero/programs: Contents read & write, Actions read
+#   set with:  pbpaste | npx wrangler secret put GITHUB_TOKEN -c admin/wrangler.toml
