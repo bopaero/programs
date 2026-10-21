@@ -1,0 +1,38 @@
+name: Refresh
+
+# The documents here are built from sources in OTHER repos: the SF50 costing and the
+# comparison data (bopaero/sf50Program) and the SR22T costing (bopaero/sr22tProgram).
+# A publish there does not push here, so this checks every 15 minutes whether any live
+# source is newer than the one this site was last built from (data/build.json) and, if
+# so, runs Publish. Only this repo's own GITHUB_TOKEN is involved (Raymond prefers no
+# new long-lived tokens; decided 2026-10-16).
+on:
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch:
+
+permissions:
+  actions: write      # start the Publish workflow
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Rebuild when a source changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          t=$(date +%s)
+          v() { curl -fsS "$1?t=$t" | python3 -c "import json,sys;print(json.load(sys.stdin)['version'])"; }
+          live="sf50=$(v https://sf50program.bopaero.com/data/costing.json) sr22t=$(v https://sr22tprogram.bopaero.com/data/costing.json) comparison=$(v https://sf50program.bopaero.com/data/comparison.json)"
+          built=$(curl -fsS "https://programs.bopaero.com/data/build.json?t=$t" | python3 -c "import json,sys;b=json.load(sys.stdin);print('sf50=%s sr22t=%s comparison=%s'%(b.get('sf50'),b.get('sr22t'),b.get('comparison')))" || echo "unknown")
+          echo "live:  $live"
+          echo "built: $built"
+          case "$live" in *=\ *|*=) echo "Could not read a live source"; exit 1;; esac
+          if [ "$live" = "$built" ]; then echo "Up to date."; exit 0; fi
+          busy=$(gh run list --workflow publish.yml --limit 5 --json status -q '[.[] | select(.status != "completed")] | length')
+          if [ "$busy" != "0" ]; then echo "A Publish run is already in progress; it will pick up the new sources."; exit 0; fi
+          gh workflow run publish.yml --ref main
+          echo "Started Publish."

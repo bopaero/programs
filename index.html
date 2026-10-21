@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<!--
+  programs.bopaero.com — documents that cover more than one bop Aero ownership program
+  (set up 2026-10-21). Program-specific documents stay on their own sites
+  (sf50program / sr22tprogram .bopaero.com). Unlisted, like those sites.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Ownership Program Documents — bop Aero</title>
+<style>
+:root { --orange:#FF6700; --navy:#003666; --ink:#1a1a1a; --muted:#6b6b70; --rule:#d9d9de; --bg:#f3f3f5; --card:#fff; color-scheme: light dark; }
+@media (prefers-color-scheme: dark) { :root { --ink:#ececf0; --muted:#a0a0a8; --rule:#3a3a42; --bg:#16161a; --card:#202026; } }
+* { box-sizing: border-box; }
+body { margin:0; background: var(--bg); color: var(--ink); font-family: Verdana, Tahoma, Arial, sans-serif; }
+header { background: var(--orange); color:#fff; padding: 18px 16px; text-align:center; }
+header img { width: 130px; display:block; margin: 0 auto 6px; }
+header h1 { margin:0; font-size: 18px; letter-spacing: .12em; }
+main { max-width: 760px; margin: 0 auto; padding: 20px 16px 40px; }
+.doc { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 14px 16px; margin: 0 0 12px; }
+.doc h2 { margin: 0 0 4px; font-size: 15px; }
+.doc p { margin: 0 0 8px; font-size: 13px; color: var(--muted); line-height: 1.4; }
+.doc a { color: var(--orange); font-weight: bold; font-size: 13px; margin-right: 16px; }
+.foot { font-size: 11px; color: var(--muted); margin-top: 20px; line-height: 1.5; }
+.foot a { color: inherit; }
+</style>
+</head>
+<body>
+<header><img src="assets/bop-aero-logo-white.svg" alt="bop Aero"><h1>OWNERSHIP PROGRAM DOCUMENTS</h1></header>
+<main>
+  <div class="doc"><h2>Letter of Intent — Aircraft Ownership Program</h2>
+    <p>Every program, share structure and per-share figure comes from the published costings.</p>
+    <a href="loi.html">View</a><a href="bop-Aero-Letter-of-Intent.pdf">PDF</a></div>
+  <div class="doc"><h2>Pre-Owned Aircraft vs. bop Aero Shared Ownership</h2>
+    <p>The customer comparison (6-Seat Comparison Sheet).</p>
+    <a href="comparison.html">View</a><a href="bop-Aero-Aircraft-Ownership-Comparison.pdf">PDF</a></div>
+  <div class="doc"><h2>Founder’s Circle Insert</h2>
+    <p>Program details, no financial figures.</p>
+    <a href="founders-insert.html">View</a><a href="bop-Aero-Founders-Circle-Insert.pdf">PDF</a></div>
+  <div class="doc"><h2>Founder’s Circle Detail Sheet</h2>
+    <p>Founder’s Circle pricing and terms for every program that offers it.</p>
+    <a href="founders-detail.html">View</a><a href="bop-Aero-Founders-Circle-Detail-Sheet.pdf">PDF</a></div>
+  <p class="foot" id="built">Program documents: <a href="https://sf50program.bopaero.com">SF50</a> · <a href="https://sr22tprogram.bopaero.com">SR22T</a></p>
+</main>
+<script>
+// Which source versions the PDFs were last built from (written by tools/build-pdf.py)
+fetch('data/build.json?t=' + Date.now()).then(function (r) { return r.ok ? r.json() : null; }).then(function (b) {
+  if (!b) return;
+  var el = document.createElement('div');
+  el.textContent = 'Built from: ' + Object.keys(b).map(function (k) { return k.toUpperCase() + ' ' + b[k]; }).join(' · ');
+  document.getElementById('built').appendChild(el);
+}).catch(function () {});
+</script>
+</body>
+</html>

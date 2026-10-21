@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<!--
+  bop Aero — Letter of Intent, Aircraft Ownership Program (added 2026-10-21).
+  Replaces LOI_Aircraft_Ownership_Program_FINAL_REVISED.pages (2026-09-11), which is now a
+  historical record. The wording lives here (LOI_TEXT version below); every program, share
+  structure and figure comes from the costings through their costing.js: the SF50 costing in
+  sf50program.bopaero.com, the SR22T costing from sr22tprogram.bopaero.com. So:
+    - a costing publish (price, shares, units, fees) changes the LOI on the next build;
+    - a program added to either costing appears in Sections 2 and 3 with no change here;
+    - a new aircraft type is one entry in AIRCRAFT below (its site + costing library).
+  A publish of either costing rebuilds this page through .github/workflows/refresh.yml.
+  Change the wording → bump LOI_VERSION. Every page is stamped with all three versions.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Letter of Intent — Aircraft Ownership Program — bop Aero</title>
+<style>
+:root { --navy:#2b3d7c; --ink:#111; --muted:#555; --rule:#c9cdd8; --shade:#f4f6fa; color-scheme: light; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: #e9e9ec; color: var(--ink); font-family: "Times New Roman", Times, serif; font-size: 11.5pt; line-height: 1.38; }
+main { background:#fff; max-width: 8.5in; margin: 20px auto; padding: 0.7in 0.75in 0.8in; box-shadow:0 2px 14px rgba(0,0,0,.12); }
+h1 { text-align:center; color: var(--navy); font-size: 19pt; margin: 0; letter-spacing: .02em; }
+.subtitle { text-align:center; color: #4a5470; font-weight: bold; font-size: 11.5pt; margin: 4px 0 22px; letter-spacing: .04em; }
+h2 { color: var(--navy); font-size: 12.5pt; margin: 18px 0 6px; break-after: avoid; }
+p { margin: 0 0 8px; text-align: justify; }
+.parties { background: var(--shade); padding: 8px 14px; margin: 10px 0 14px; }
+.parties p { margin: 4px 0; text-align: left; }
+.blank { display:inline-block; border-bottom: 1px solid #000; min-width: 2.2in; height: 1em; vertical-align: baseline; }
+.blank.s { min-width: 1in; } .blank.l { min-width: 3.6in; }
+table { width: 100%; border-collapse: collapse; margin: 6px 0 10px; font-size: 10.5pt; break-inside: auto; }
+th { background: var(--shade); color: var(--navy); text-align: left; padding: 5px 6px; font-size: 10pt; }
+td { padding: 5px 6px; border-top: 1px solid var(--rule); vertical-align: top; }
+tr { break-inside: avoid; }
+td.n, th.n { text-align: right; white-space: nowrap; }
+td.box { width: 22px; font-family: Arial, sans-serif; font-size: 12pt; padding-top: 3px; }
+.small { font-size: 9.5pt; color: var(--muted); }
+.small p { text-align: left; margin-bottom: 4px; }
+ul { margin: 4px 0 8px 20px; padding: 0 0 0 10px; }
+li { margin: 0 0 4px; text-align: justify; }
+.keep { break-inside: avoid; }
+.sig { display:grid; grid-template-columns: 1fr 1fr; gap: 36px; margin-top: 22px; break-inside: avoid; }
+.sig h3 { font-size: 11pt; margin: 0 0 26px; }
+.sig .line { border-bottom: 1px solid #000; height: 26px; margin-bottom: 2px; }
+.sig .lab { font-size: 10pt; margin-bottom: 14px; }
+.attach { break-before: page; text-align: center; }
+.attach h2 { text-align:center; margin-top: 0; }
+.attach .drop { border: 1px dashed #888; padding: 28px 20px; margin: 18px 0; font-style: italic; }
+.stamp { text-align: right; font-size: 8pt; color: var(--muted); font-family: Arial, sans-serif; margin-top: 18px; }
+.err { color:#b91c1c; padding: 20px; }
+@page { size: letter; margin: 0.7in 0.75in 0.75in; }
+@media print {
+  body { background:#fff; }
+  main { max-width:none; margin:0; padding:0; box-shadow:none; }
+  .stamp { display: none; }   /* printed in the page margin instead (see render) */
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+@media (max-width: 640px) { main { padding: 20px 16px; } .sig { grid-template-columns: 1fr; } table { font-size: 9.5pt; } .blank, .blank.l { min-width: 1.6in; } }
+</style>
+</head>
+<body>
+<main id="doc"><noscript><p class="err">This page needs JavaScript to display.</p></noscript></main>
+<script src="https://sf50program.bopaero.com/assets/costing.js"></script>
+<script src="https://sr22tprogram.bopaero.com/assets/costing.js"></script>
+<script>
+// Version of the LOI WORDING. Bump it whenever the text below changes (figures follow the costings).
+var LOI_VERSION = 'v2026-10-21.1';
+var SR22T_SITE = 'https://sr22tprogram.bopaero.com', SF50_SITE = 'https://sf50program.bopaero.com';
+
+// The aircraft offered, in the order the LOI lists them. A new aircraft type = one entry here.
+// describe(p, d) returns how that program's aircraft and use read in Section 2.
+var AIRCRAFT = [
+  { name: 'Cirrus SR22T', costing: SR22T_SITE + '/data/costing.json', lib: function () { return window.SR22TCosting; },
+    describe: function (p) {
+      return { aircraft: 'New Cirrus SR22T GTS ' + p.key,
+               use: 'Up to ' + p.maxHours + ' flight hours per year (Hobbs)' };
+    } },
+  { name: 'Cirrus SF50', costing: SF50_SITE + '/data/costing.json', lib: function () { return window.SF50Costing; },
+    describe: function (p) {
+      var m = p.market;
+      return { aircraft: p.approx ? 'Pre-owned Cirrus SF50 ' + p.key + (m ? ' (' + m.yearFrom + '–' + m.yearTo + ' model years)' : '')
+                                  : 'New Cirrus SF50 ' + p.key + ' Vision Jet',
+               use: 'Up to ' + p.schedulingHours + ' flight hours or ' + p.schedulingDays + ' days' };
+    } }
+];
+// SF50: the new aircraft first, then pre-owned from newest to oldest (the costing order is oldest first)
+function order(list) { return list.filter(function (p) { return !p.approx; }).concat(list.filter(function (p) { return p.approx; }).reverse()); }
+
+function money(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
+function pct(x) { return (x * 100).toFixed(2) + '%'; }
+function esc(s) { return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+var WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen'];
+function count(n) { return (WORDS[n] || String(n)) + ' (' + n + ')'; }
+function blank(cls) { return '<span class="blank' + (cls ? ' ' + cls : '') + '"></span>'; }
+
+function render(sets) {
+  var rows2 = '', rows3 = '', fc = [], bridge = null, stamp = 'LOI ' + LOI_VERSION;
+  sets.forEach(function (s) {
+    var d = s.derived, list = order(d.programs);
+    stamp += ' · ' + s.a.name.replace('Cirrus ', '') + ' ' + d.version;
+    list.forEach(function (p) {
+      var x = s.a.describe(p, d), t = p.approx ? '~' : '';
+      var label = s.a.name + ' ' + p.key;
+      rows2 += '<tr><td class="box">☐</td><td><b>' + esc(label) + '</b><br>' + esc(x.aircraft) + '</td>' +
+        '<td class="n">' + p.sharesRemaining + ' of ' + p.shares + '</td>' +
+        '<td class="n">' + p.unitsPerShare + ' of ' + p.totalUnits + ' units<br><span class="small">(' + pct(p.equity) + ')</span></td>' +
+        '<td>' + esc(x.use) + '</td></tr>';
+      rows3 += '<tr><td><b>' + esc(label) + '</b></td><td class="n">' + t + money(p.capPerShare) + '</td><td class="n">~' + money(p.annualFee) + '</td></tr>';
+      if (p.founderAnnualFee !== undefined) fc.push({ label: label, p: p, rates: d.common.founders });
+    });
+    if (d.bridge && d.bridge.postPay) bridge = { a: s.a, d: d, b: d.bridge, pp: d.bridge.postPay, p: d.baseline };
+  });
+  var anyApprox = sets.some(function (s) { return s.derived.programs.some(function (p) { return p.approx; }); });
+
+  var html =
+    '<h1>LETTER OF INTENT</h1>' +
+    '<div class="subtitle">AIRCRAFT OWNERSHIP PROGRAM</div>' +
+    '<p><b>Effective Date:</b> ' + blank() + ', 20' + blank('s') + '</p>' +
+    '<div class="parties">' +
+      '<p><b>Manager:</b> BOP AERO SERVICES LLC, a Kentucky limited liability company, or its designated aircraft ownership affiliate ("Manager").</p>' +
+      '<p><b>Prospective Owner:</b> ' + blank('l') + ' ("Prospective Owner").</p>' +
+    '</div>' +
+
+    '<h2>1. Purpose &amp; Core Intent</h2>' +
+    '<p>The purpose of this Letter of Intent ("LOI") is to formally confirm Prospective Owner\'s serious interest in participating in an aircraft ownership program managed by Manager and to establish the baseline operational and financial terms currently under consideration. The parties acknowledge and agree that this document serves as a preliminary expression of interest to guide the drafting of final transaction documentation and does not create a definitive binding obligation to purchase, sell, or manage an aircraft interest, except as explicitly set forth in Section 7 herein.</p>' +
+
+    '<h2>2. Program Selection &amp; Target Ownership Shares</h2>' +
+    '<p>Prospective Owner expresses a good-faith intent to acquire one or more ownership shares in the program selected below, in accordance with the following initial parameters:</p>' +
+    '<table><thead><tr><th></th><th>Aircraft Ownership Program</th><th class="n">Shares available</th><th class="n">Ownership per share</th><th>Scheduling per share</th></tr></thead><tbody>' + rows2 + '</tbody></table>' +
+    '<p class="small">Each program aircraft is divided into ownership units. Each share holds the units shown, and Manager retains one (1) unit in each program aircraft. Unit counts are distinct from the number of legal owners and remain subject to final legal review.</p>' +
+    '<p><b>Ownership Shares Selected:</b> ' + blank() + ' ownership share(s)</p>' +
+    (bridge ?
+      '<div class="keep"><p><b>' + esc(bridge.a.name) + ' payment option</b> (' + esc(bridge.a.name) + ' only):</p>' +
+      '<table><tbody>' +
+        '<tr><td class="box">☐</td><td><b>Option 1 — New aircraft, program pre-pay.</b> Full Owner Investment for the new ' + esc(bridge.a.name + ' ' + bridge.p.key) + ' at closing; the share may be flown on the ' + esc(bridge.b.model) + ' bridge aircraft until the new aircraft is delivered.</td></tr>' +
+        '<tr><td class="box">☐</td><td><b>Option 2 — Bridge aircraft, program post-pay.</b> A smaller initial Owner Investment in the ' + esc(bridge.b.model) + ' bridge aircraft, with the remaining capital requirement due when the new aircraft is purchased.</td></tr>' +
+      '</tbody></table></div>' : '') +
+    (fc.length ?
+      '<table><tbody><tr><td class="box">☐</td><td><b>Founder’s Circle (optional add-on).</b> Prospective Owner wishes to be considered for a Founder’s Circle position, offered on ' +
+        fc.map(function (f) { return count(f.p.founders.positions) + ' shares of each ' + esc(f.label); }).join(' and ') +
+        ' and allocated in reserved owner position order (Section 2A) while positions remain.</td></tr></tbody></table>' : '') +
+
+    '<h2>2A. Reserved Owner Position &amp; Scheduling Priority</h2>' +
+    '<p>Upon Prospective Owner\'s execution of this LOI and Manager\'s acceptance, Prospective Owner shall be assigned a reserved owner position based on the date and time of Prospective Owner\'s execution, as evidenced by the applicable electronic-signature timestamp or, if unavailable, Manager\'s documented time of receipt. Earlier qualifying timestamps shall receive priority. This position shall determine relative scheduling priority upon execution of definitive program agreements, subject to the Scheduling and Use Policy, but does not guarantee aircraft availability for any particular reservation. If Prospective Owner withdraws, or this LOI expires or is terminated without execution of definitive agreements, the reserved position shall terminate and may be reassigned by Manager.</p>' +
+
+    '<h2>3. Anticipated Financial Structure</h2>' +
+    '<p>Based upon the program figures published by Manager as of the date of this LOI, the financial terms under consideration are structured as follows, per ownership share; the anticipated amounts for Prospective Owner are these figures multiplied by the number of ownership shares selected in Section 2. Final pricing, operating budgets, and insurance underwriting premiums will be definitively established in the final program documents.</p>' +
+    '<table><thead><tr><th>Program (per share)</th><th class="n">Owner Investment<br>(one-time)</th><th class="n">Annual Program Fee<br>(annual)</th></tr></thead><tbody>' + rows3 + '</tbody></table>' +
+    (bridge ?
+      '<table><thead><tr><th>' + esc(bridge.a.name) + ' Option 2 — bridge post-pay (per share)</th><th class="n">Amount</th></tr></thead><tbody>' +
+        '<tr><td>Initial Owner Investment (' + esc(bridge.b.model) + ' bridge aircraft)</td><td class="n">' + money(bridge.pp.investment) + '</td></tr>' +
+        '<tr><td>Projected capital requirement due at the new aircraft purchase</td><td class="n">~' + money(bridge.pp.dueAtNewAircraft) + '</td></tr>' +
+        '<tr><td>Bridge aircraft Annual Program Fee, until the new aircraft is acquired</td><td class="n">~' + money(bridge.pp.annualFee) + '</td></tr>' +
+      '</tbody></table>' : '') +
+    (fc.length ?
+      '<table><thead><tr><th>Founder’s Circle add-on (per share, if elected)</th>' + fc.map(function (f) { return '<th class="n">' + esc(f.label) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+        '<tr><td>Founder Activation Fee (one-time, ' + pct(fc[0].rates.activationRate).replace('.00', '') + ' of Owner Investment)</td>' + fc.map(function (f) { return '<td class="n">' + money(f.p.founderActivation) + '</td>'; }).join('') + '</tr>' +
+        '<tr><td>Annual Founder Premium (' + pct(fc[0].rates.premiumRate).replace('.00', '') + ' of Annual Program Fee)</td>' + fc.map(function (f) { return '<td class="n">' + money(f.p.founderPremium) + '</td>'; }).join('') + '</tr>' +
+      '</tbody></table>' : '') +
+    '<div class="small">' +
+      '<p><b>Owner Investment</b> is the one-time acquisition cost per share: the aircraft purchase price, estimated taxes (calculated where the aircraft is based), and Manager\'s program acquisition costs; for the Cirrus SF50 it also includes the Cirrus JetStream program.</p>' +
+      '<p><b>Annual Program Fee</b> covers the program\'s fixed costs per share: insurance, storage, maintenance, cleaning and detailing, internet and flight data subscriptions, the management fee, and the Future Value Reserve. It is subject to change annually; Founder’s Circle fees are fixed for the program duration, which is tied to the aircraft serial number. Fuel, oil, pilot services, and training are not included.</p>' +
+      (anyApprox ? '<p>Figures marked "~" are projections. Pre-owned figures are illustrative planning values, finalized from the selected aircraft, tax jurisdiction, JetStream status, connectivity configuration, and transaction-specific costs.</p>' : '') +
+    '</div>' +
+
+    '<h2>4. Financial Qualification &amp; Enhanced Data Protection</h2>' +
+    '<p>Prospective Owner acknowledges that participation in the aircraft ownership program requires verification of financial suitability for underwriting, lending, and aircraft acquisition planning. To satisfy this requirement, Prospective Owner agrees to provide financial qualification information under the following protections:</p>' +
+    '<p>Prospective Owner represents that he or she possesses the financial capacity to satisfy the anticipated capital contribution and annual ownership obligations described herein.</p>' +
+    '<ul>' +
+      '<li><b>Flexible Submission:</b> Prospective Owner may satisfy this requirement by attaching a standard Personal Financial Statement ("PFS") to this LOI (as outlined in Attachment A), OR by providing a formal Letter of Verification from an accredited Certified Public Accountant (CPA) or recognized financial institution confirming sufficient liquidity and net worth to execute the transaction.</li>' +
+      '<li><b>Strict Confidentiality:</b> Manager shall maintain all financial data as strictly confidential and use it solely to evaluate program eligibility, secure financing support indicators, and obtain preliminary aircraft insurance hull and liability quotations.</li>' +
+      '<li><b>Data Return/Destruction Policy:</b> In the event this LOI expires, or either party terminates negotiations without executing definitive program agreements, Manager shall use commercially reasonable efforts to destroy or return all copies of the PFS or validation documents upon written request.</li>' +
+    '</ul>' +
+
+    '<h2>5. Manager Reliance &amp; Operational Planning</h2>' +
+    '<p>Prospective Owner acknowledges that while this document is largely non-binding, Manager will utilize this expression of serious intent to perform essential transactional groundwork, including:</p>' +
+    '<ul>' +
+      '<li>Identifying, vetting, and negotiating specific aircraft acquisition opportunities or hull positions;</li>' +
+      '<li>Seeking and structuring preliminary financing or fleet leasing arrangements;</li>' +
+      '<li>Securing formal insurance underwriting quotations tailored to the prospective owner pool;</li>' +
+      '<li>Demonstrating aggregate, actionable consumer interest to lenders, brokers, aircraft OEMs, and institutional investors.</li>' +
+    '</ul>' +
+    '<p>Prospective Owner understands that Manager may rely upon this Letter of Intent when evaluating aircraft acquisition opportunities and arranging financing related to the contemplated ownership program.</p>' +
+    '<p>Manager is permitted to disclose the existence of this LOI and aggregate program statistics for these business purposes, provided that individual personal financial data is never disclosed to any third party who is not bound by standard professional confidentiality obligations.</p>' +
+
+    '<h2>6. Specification of Definitive Documentation</h2>' +
+    '<p>Participation remains subject to review and execution of definitive legal agreements, including ownership-share purchase, management, operating, Scheduling and Use Policy, and related program documents. Aircraft acquisition and program commencement remain subject to sufficient owner commitments, suitable aircraft availability, financing, insurance, and operational requirements; nothing in this LOI guarantees acquisition, delivery, or entry into service by any particular date.</p>' +
+
+    '<h2>7. Definitive Binding Nature &amp; Survival</h2>' +
+    '<p>The parties acknowledge that Section 2A is binding during the term of this LOI with respect to the reserved owner position. Sections 4, 8, 9, and 10 are intended to survive the expiration or termination of this LOI to the extent necessary to govern financial data protection, confidentiality, and related legal protections.</p>' +
+    '<p>All other sections, including descriptions of financial parameters, target asset classes, program structures, and anticipated ownership terms, are non-binding expressions of intent. Neither party shall be obligated to proceed with the transaction unless and until definitive agreements have been executed. Except for breaches of the binding or surviving sections identified above, neither party shall bear liability to the other for discontinuing discussions at any time.</p>' +
+
+    '<h2>8. Confidentiality</h2>' +
+    '<p>The parties agree to hold in strict confidence all non-public, proprietary information, financial parameters, structural mechanisms, and client data exchanged in connection with this LOI. No party shall issue public press releases or disclose transaction terms to third parties without prior written consent, except as required by law or as reasonably necessary to professional advisors, insurers, or financing entities participating in the transaction evaluation.</p>' +
+
+    '<h2>9. Governing Law</h2>' +
+    '<p>This Letter of Intent, and all claims or disputes arising out of or relating to its execution or interpretation (whether contractual or tortious), shall be governed by, and construed in accordance with, the internal laws of the Commonwealth of Kentucky, without regard to conflict of laws principles.</p>' +
+
+    '<div class="keep">' +
+    '<h2>10. Expiration</h2>' +
+    '<p>Unless mutually extended or renewed in writing by both parties, this Letter of Intent shall automatically expire and become null and void at 5:00 PM Eastern Time on ' + blank() + ', 20' + blank('s') + ', after which neither party shall have any ongoing obligation to the other except under the surviving provisions identified in Section 7. Unless definitive agreements have been executed, any reserved owner position under Section 2A shall terminate upon expiration.</p>' +
+
+      '<p>IN WITNESS WHEREOF, the parties hereto have executed this Letter of Intent as of the date written below.</p>' +
+      '<div class="sig">' +
+        '<div><h3>PROSPECTIVE OWNER:</h3>' +
+          '<div class="line"></div><div class="lab">Signature</div>' +
+          '<div class="line"></div><div class="lab">Printed Name</div>' +
+          '<div class="line"></div><div class="lab">Date</div></div>' +
+        '<div><h3>BOP AERO SERVICES LLC:</h3>' +
+          '<div class="line"></div><div class="lab">By</div>' +
+          '<div class="line"></div><div class="lab">Printed Name</div>' +
+          '<div class="line"></div><div class="lab">Title</div>' +
+          '<div class="line"></div><div class="lab">Date</div></div>' +
+      '</div>' +
+    '</div>' +
+
+    '<section class="attach">' +
+      '<h2>ATTACHMENT A<br>FINANCIAL QUALIFICATION REQUIREMENT</h2>' +
+      '<p style="text-align:center">In lieu of completing a Personal Financial Statement (PFS), Prospective Owner may substitute a formal Verification Letter signed by an authorized Officer of a Financial Institution or a Certified Public Accountant (CPA) verifying transaction suitability.</p>' +
+      '<div class="drop">Please securely attach your preferred financial validation documentation or standard Personal Financial Statement here.</div>' +
+      '<p class="small" style="text-align:center">All data attached remains strictly subject to the binding Data Protection, Strict Confidentiality, and Mandatory Return/Destruction policies set forth in Sections 4 and 8 of this Letter of Intent.</p>' +
+    '</section>' +
+    '<div class="stamp">' + esc(stamp) + '</div>';
+
+  document.getElementById('doc').innerHTML = html;
+  // Every printed page carries the version stamp (build-pdf.py checks it) and its page number
+  var css = document.createElement('style');
+  css.textContent = '@page { @bottom-left { content: "Page " counter(page) " of " counter(pages); font: 8pt Arial, sans-serif; color: #555; } ' +
+    '@bottom-right { content: "' + stamp.replace(/["\\]/g, '') + '"; font: 8pt Arial, sans-serif; color: #555; } }';
+  document.head.appendChild(css);
+  var versions = { loi: LOI_VERSION };
+  sets.forEach(function (s) { versions[s.a.name.replace('Cirrus ', '').toLowerCase()] = s.derived.version; });
+  document.documentElement.setAttribute('data-versions', JSON.stringify(versions));
+  document.documentElement.setAttribute('data-rendered', LOI_VERSION);   // build-pdf.py waits for this
+}
+
+function getJson(u) { return fetch(u + (u.indexOf('//') > 0 ? '?t=' + Date.now() : ''), { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error(u + ' HTTP ' + r.status); return r.json(); }); }
+Promise.all(AIRCRAFT.map(function (a) { return getJson(a.costing); }))
+  .then(function (raw) {
+    render(AIRCRAFT.map(function (a, i) {
+      var lib = a.lib();
+      if (!lib) throw new Error('the ' + a.name + ' costing library did not load');
+      var problems = lib.validate(raw[i]);
+      if (problems.length) throw new Error(a.name + ' costing is not valid: ' + problems.join('; '));
+      return { a: a, derived: lib.derive(raw[i]) };
+    }));
+  })
+  .catch(function(err){
+    document.getElementById('doc').innerHTML = '<p class="err">This page could not be displayed. ' + esc(err.message || err) + '</p>';
+    document.documentElement.setAttribute('data-render-error', String(err.message || err));
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+name: Publish
+
+# Every push to main (a wording change), and every run started by refresh.yml when a
+# source changed, rebuilds the PDFs from the pages and deploys the site and the PDFs
+# TOGETHER, so the site can never show new figures beside an old PDF.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write     # archive versions/*.pdf
+  pages: write
+  id-token: write
+
+concurrency:
+  group: publish
+  cancel-in-progress: true   # the newest run reads the newest sources
+
+jobs:
+  publish:
+    # Pinned to the same image as the SF50 and SR22T sites (their PDFs were compared on it)
+    runs-on: ubuntu-26.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install PDF tools and fonts
+        run: |
+          echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | sudo debconf-set-selections
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq poppler-utils ttf-mscorefonts-installer >/dev/null
+          fc-cache -f >/dev/null
+          fc-list | grep -qi "arial" || { echo "Arial missing — layout would not match"; exit 1; }
+
+      - name: Assemble site
+        run: |
+          mkdir _site
+          cp -r index.html loi.html comparison.html founders-insert.html founders-detail.html CNAME robots.txt assets versions _site/
+
+      - name: Build PDFs (fails the publish unless every document has its exact pages, versioned, clean)
+        run: python3 tools/build-pdf.py --out _site --archive | tee build.log
+
+      - name: Archive new versions
+        run: |
+          added=$(sed -n 's/^ARCHIVED //p' build.log)
+          if [ -n "$added" ]; then
+            cp $added _site/versions/
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add $added
+            git commit -m "Archive $(echo $added | wc -w | tr -d ' ') PDF version(s) [skip ci]"
+            git push
+          fi
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4
