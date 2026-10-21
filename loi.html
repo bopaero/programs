@@ -67,18 +67,18 @@ li { margin: 0 0 4px; text-align: justify; }
 <script src="https://sr22tprogram.bopaero.com/assets/costing.js"></script>
 <script>
 // Version of the LOI WORDING. Bump it whenever the text below changes (figures follow the costings).
-var LOI_VERSION = 'v2026-10-21.1';
+var LOI_VERSION = 'v2026-10-21.2';
 var SR22T_SITE = 'https://sr22tprogram.bopaero.com', SF50_SITE = 'https://sf50program.bopaero.com';
 
 // The aircraft offered, in the order the LOI lists them. A new aircraft type = one entry here.
 // describe(p, d) returns how that program's aircraft and use read in Section 2.
 var AIRCRAFT = [
-  { name: 'Cirrus SR22T', costing: SR22T_SITE + '/data/costing.json', lib: function () { return window.SR22TCosting; },
+  { name: 'Cirrus SR22T', short: 'SR22T', costing: SR22T_SITE + '/data/costing.json', lib: function () { return window.SR22TCosting; },
     describe: function (p) {
       return { aircraft: 'New Cirrus SR22T GTS ' + p.key,
                use: 'Up to ' + p.maxHours + ' flight hours per year (Hobbs)' };
     } },
-  { name: 'Cirrus SF50', costing: SF50_SITE + '/data/costing.json', lib: function () { return window.SF50Costing; },
+  { name: 'Cirrus SF50', short: 'SF50', costing: SF50_SITE + '/data/costing.json', lib: function () { return window.SF50Costing; },
     describe: function (p) {
       var m = p.market;
       return { aircraft: p.approx ? 'Pre-owned Cirrus SF50 ' + p.key + (m ? ' (' + m.yearFrom + '–' + m.yearTo + ' model years)' : '')
@@ -133,10 +133,11 @@ function render(sets) {
     '<p class="small">Each program aircraft is divided into ownership units. Each share holds the units shown, and Manager retains one (1) unit in each program aircraft. Unit counts are distinct from the number of legal owners and remain subject to final legal review.</p>' +
     '<p><b>Ownership Shares Selected:</b> ' + blank() + ' ownership share(s)</p>' +
     (bridge ?
-      '<div class="keep"><p><b>' + esc(bridge.a.name) + ' payment option</b> (' + esc(bridge.a.name) + ' only):</p>' +
+      '<div class="keep"><p><b>' + esc(bridge.a.short) + ' payment option</b> (' + esc(bridge.a.short) + ' shares only):</p>' +
       '<table><tbody>' +
         '<tr><td class="box">☐</td><td><b>Option 1 — New aircraft, program pre-pay.</b> Full Owner Investment for the new ' + esc(bridge.a.name + ' ' + bridge.p.key) + ' at closing; the share may be flown on the ' + esc(bridge.b.model) + ' bridge aircraft until the new aircraft is delivered.</td></tr>' +
         '<tr><td class="box">☐</td><td><b>Option 2 — Bridge aircraft, program post-pay.</b> A smaller initial Owner Investment in the ' + esc(bridge.b.model) + ' bridge aircraft, with the remaining capital requirement due when the new aircraft is purchased.</td></tr>' +
+        '<tr><td></td><td class="small">Under either option, the Annual Program Fee is the ' + esc(bridge.a.name + ' ' + bridge.p.key) + ' Annual Program Fee shown in Section 3.</td></tr>' +
       '</tbody></table></div>' : '') +
     (fc.length ?
       '<table><tbody><tr><td class="box">☐</td><td><b>Founder’s Circle (optional add-on).</b> Prospective Owner wishes to be considered for a Founder’s Circle position, offered on ' +
@@ -150,10 +151,10 @@ function render(sets) {
     '<p>Based upon the program figures published by Manager as of the date of this LOI, the financial terms under consideration are structured as follows, per ownership share; the anticipated amounts for Prospective Owner are these figures multiplied by the number of ownership shares selected in Section 2. Final pricing, operating budgets, and insurance underwriting premiums will be definitively established in the final program documents.</p>' +
     '<table><thead><tr><th>Program (per share)</th><th class="n">Owner Investment<br>(one-time)</th><th class="n">Annual Program Fee<br>(annual)</th></tr></thead><tbody>' + rows3 + '</tbody></table>' +
     (bridge ?
-      '<table><thead><tr><th>' + esc(bridge.a.name) + ' Option 2 — bridge post-pay (per share)</th><th class="n">Amount</th></tr></thead><tbody>' +
+      '<table class="keep"><thead><tr><th>' + esc(bridge.a.name) + ' Option 2 — bridge post-pay (per share)</th><th class="n">Amount</th></tr></thead><tbody>' +
         '<tr><td>Initial Owner Investment (' + esc(bridge.b.model) + ' bridge aircraft)</td><td class="n">' + money(bridge.pp.investment) + '</td></tr>' +
         '<tr><td>Projected capital requirement due at the new aircraft purchase</td><td class="n">~' + money(bridge.pp.dueAtNewAircraft) + '</td></tr>' +
-        '<tr><td>Bridge aircraft Annual Program Fee, until the new aircraft is acquired</td><td class="n">~' + money(bridge.pp.annualFee) + '</td></tr>' +
+        '<tr><td>Annual Program Fee (the ' + esc(bridge.a.name + ' ' + bridge.p.key) + ' fee, as under Option 1)</td><td class="n">~' + money(bridge.p.annualFee) + '</td></tr>' +
       '</tbody></table>' : '') +
     (fc.length ?
       '<table><thead><tr><th>Founder’s Circle add-on (per share, if elected)</th>' + fc.map(function (f) { return '<th class="n">' + esc(f.label) + '</th>'; }).join('') + '</tr></thead><tbody>' +
