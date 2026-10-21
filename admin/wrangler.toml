@@ -15,7 +15,9 @@ ALLOWED_EMAILS = "compilotrc@mac.com,raymond@bopaero.com"
 # Cloudflare Access on this workers.dev hostname. Neither value is secret. Until both are
 # set, the Worker refuses every request (fails closed).
 ACCESS_TEAM_DOMAIN = "calm-field-898f.cloudflareaccess.com"
-ACCESS_AUD = ""
+ACCESS_AUD = "820ad2ba85031b925c6f7a88c0b9fd0502da58a91ddef1d58dc079e3ae9adcc5"
+# (Access enabled 2026-10-21 on the Worker's Access tab: scope All traffic; policies Email domain
+#  bopaero.com + Cloudflare account members. The AUD is the kid in the login redirect.)
 
 # Replaces the sf50-costing Worker (2026-10-21). Bundles the SF50 and SR22T editor pages and
 # costing.js from ../../sf50Program and ../../sr22tProgram: deploy with both repos checked out
