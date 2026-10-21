@@ -67,7 +67,7 @@ li { margin: 0 0 4px; text-align: justify; }
 <script src="https://sr22tprogram.bopaero.com/assets/costing.js"></script>
 <script>
 // Version of the LOI WORDING. Bump it whenever the text below changes (figures follow the costings).
-var LOI_VERSION = 'v2026-10-21.2';
+var LOI_VERSION = 'v2026-10-21.3';
 var SR22T_SITE = 'https://sr22tprogram.bopaero.com', SF50_SITE = 'https://sf50program.bopaero.com';
 
 // The aircraft offered, in the order the LOI lists them. A new aircraft type = one entry here.
@@ -142,7 +142,7 @@ function render(sets) {
     (fc.length ?
       '<table><tbody><tr><td class="box">☐</td><td><b>Founder’s Circle (optional add-on).</b> Prospective Owner wishes to be considered for a Founder’s Circle position, offered on ' +
         fc.map(function (f) { return count(f.p.founders.positions) + ' shares of each ' + esc(f.label); }).join(' and ') +
-        ' and allocated in reserved owner position order (Section 2A) while positions remain.</td></tr></tbody></table>' : '') +
+        ', subject to availability when definitive agreements are executed.</td></tr></tbody></table>' : '') +
 
     '<h2>2A. Reserved Owner Position &amp; Scheduling Priority</h2>' +
     '<p>Upon Prospective Owner\'s execution of this LOI and Manager\'s acceptance, Prospective Owner shall be assigned a reserved owner position based on the date and time of Prospective Owner\'s execution, as evidenced by the applicable electronic-signature timestamp or, if unavailable, Manager\'s documented time of receipt. Earlier qualifying timestamps shall receive priority. This position shall determine relative scheduling priority upon execution of definitive program agreements, subject to the Scheduling and Use Policy, but does not guarantee aircraft availability for any particular reservation. If Prospective Owner withdraws, or this LOI expires or is terminated without execution of definitive agreements, the reserved position shall terminate and may be reassigned by Manager.</p>' +
