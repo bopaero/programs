@@ -88,7 +88,7 @@ jobs:
             echo "- Was: \`$old\`"
             echo "- Now: \`$new\`"
             echo
-            echo "**To do:** download https://programs.bopaero.com/bop-Aero-Letter-of-Intent.pdf and replace the document in the DocuSign template. The fields are placed by the anchor tags, so they follow the new layout."
+            echo "**To do:** replace the document in the DocuSign template with the Google Drive copy: Shared drives → bop Aero - Admin → 1. Company & Legal → Agreements → LOIs → bop-Aero-Letter-of-Intent.pdf. Your Mac refreshes it within 15 minutes of this issue; check that its footer reads \`${new%% ·*}\`. The fields are placed by the anchor tags, so they follow the new layout."
             if [ -n "$added$removed" ]; then
               echo
               echo "**The fields changed.** Add or delete these fields in the template:"
