@@ -14,6 +14,7 @@ async function jwt(claims, key = kp.privateKey) {
 const now = Math.floor(Date.now()/1000);
 const good = { iss: 'https://team.cloudflareaccess.com', aud: ['aud1'], email: 'raymond@bopaero.com', exp: now + 600 };
 let lastPut = null, sha = 'abc123';
+let lastDispatch = null, dispatchStatus = 204;
 globalThis.fetch = async (url, init = {}) => {
   url = String(url);
   if (url.endsWith('/cdn-cgi/access/certs')) return Response.json({ keys: [jwk] });
@@ -22,6 +23,7 @@ globalThis.fetch = async (url, init = {}) => {
   if (url.includes('/contents/data/costing.json') && init.method === 'PUT') { lastPut = JSON.parse(init.body); return Response.json({ commit: { sha: 'f'.repeat(40) } }); }
   if (url.includes('/contents/data/market.json')) return Response.json({ content: Buffer.from(fs.readFileSync(repo + '/data/market.json')).toString('base64') });
   if (url.includes('/actions/workflows/market-check.yml/runs')) return Response.json({ workflow_runs: [{ run_started_at: '2026-10-02T11:15:00Z', status: 'completed', conclusion: 'success', html_url: 'x' }] });
+  if (url.includes('/repos/bopaero/programs/actions/workflows/refresh.yml/dispatches') && init.method === 'POST') { lastDispatch = JSON.parse(init.body); return new Response(null, { status: dispatchStatus }); }
   if (url.includes('/actions/runs')) return Response.json({ workflow_runs: [{ name: 'Publish', status: 'completed', conclusion: 'success', html_url: 'x' }] });
   throw new Error('unexpected fetch ' + url);
 };
@@ -61,6 +63,7 @@ r = await call('/sf50/api/publish', { token: T, method: 'POST', body: { costing:
 const out = JSON.parse(r.t);
 const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 check('valid change publishes', r.status === 200, r.t);
+check('publish starts the programs rebuild (waits for the costing to go live)', out.programs === 'rebuilding' && lastDispatch && lastDispatch.ref === 'main' && lastDispatch.inputs.wait_minutes === '20', JSON.stringify(lastDispatch));
 const committed = JSON.parse(Buffer.from(lastPut.content, 'base64').toString());
 const pv = /^v(\d{4}-\d{2}-\d{2})\.(\d+)$/.exec(JSON.parse(costing).version);
 const expectV = 'v' + today + '.' + (pv[1] === today ? Number(pv[2]) + 1 : 1);
@@ -185,4 +188,8 @@ check('type training range backwards → 400', r.status === 400 && /type trainin
 const trh = structuredClone(base); delete trh.common.operating.trainingMax;
 r = await call('/sf50/api/publish', { token: T, method: 'POST', body: { costing: trh, sha, note: 'x' } });
 check('half a type training range → 400', r.status === 400 && /trainingMax must be a number/.test(r.t), r.t);
+dispatchStatus = 403;
+r = await call('/sf50/api/publish', { token: T, method: 'POST', body: { costing: edited, sha, note: 'token without Actions write' } });
+check('costing still publishes when the rebuild cannot start (scheduled check catches it)', r.status === 200 && /^scheduled \(rebuild not started: HTTP 403\)$/.test(JSON.parse(r.t).programs), r.t);
+dispatchStatus = 204;
 console.log(`\n${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

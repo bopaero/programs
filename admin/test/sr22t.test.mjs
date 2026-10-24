@@ -16,6 +16,7 @@ async function jwt(claims, key = kp.privateKey) {
 const now = Math.floor(Date.now()/1000);
 const good = { iss: 'https://team.cloudflareaccess.com', aud: ['aud1'], email: 'raymond@bopaero.com', exp: now + 600 };
 let lastPut = null, sha = 'abc123';
+let lastDispatch = null, dispatchStatus = 204;
 globalThis.fetch = async (url, init = {}) => {
   url = String(url);
   if (url.endsWith('/cdn-cgi/access/certs')) return Response.json({ keys: [jwk] });
@@ -25,6 +26,7 @@ globalThis.fetch = async (url, init = {}) => {
   if (url.includes('/contents/data/costing.json') && init.method === 'PUT') { lastPut = JSON.parse(init.body); lastRepo = sr ? 'sr22t' : 'sf50'; return Response.json({ commit: { sha: 'f'.repeat(40) } }); }
   if (url.includes('/contents/data/market.json')) return Response.json({ content: Buffer.from(fs.readFileSync((sr ? srRepo : repo) + '/data/market.json')).toString('base64') });
   if (url.includes('/actions/workflows/market-check.yml/runs')) return Response.json({ workflow_runs: [{ run_started_at: '2026-10-02T11:15:00Z', status: 'completed', conclusion: 'success', html_url: 'x' }] });
+  if (url.includes('/repos/bopaero/programs/actions/workflows/refresh.yml/dispatches') && init.method === 'POST') { lastDispatch = JSON.parse(init.body); return new Response(null, { status: dispatchStatus }); }
   if (url.includes('/actions/runs')) return Response.json({ workflow_runs: [{ name: 'Publish', status: 'completed', conclusion: 'success', html_url: 'x' }] });
   throw new Error('unexpected fetch ' + url);
 };

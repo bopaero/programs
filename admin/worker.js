@@ -23,7 +23,8 @@
 //      CLOSED until ACCESS_TEAM_DOMAIN and ACCESS_AUD are configured.
 //
 // Secret: GITHUB_TOKEN — ONE fine-grained token, Contents read/write + Actions read on
-// bopaero/sf50Program, bopaero/sr22tProgram and bopaero/programs. Never in these repos
+// bopaero/sf50Program, bopaero/sr22tProgram and bopaero/programs, plus Actions WRITE on
+// bopaero/programs (2026-10-24: a costing publish starts the LOI/comparison rebuild there). Never in these repos
 // (they are public). Build with ../sf50Program and ../sr22tProgram checked out beside this repo.
 
 import SF50Costing from '../../sf50Program/assets/costing.js';
@@ -368,7 +369,23 @@ async function publish(body, env, user, cfg) {
   if (r.status === 409) return [409, { error: 'Costing changed while publishing. Reload and try again.' }];
   if (!r.ok) return [502, { error: 'GitHub commit failed: HTTP ' + r.status + ' ' + (await r.text()).slice(0, 200) }];
   const out = await r.json();
-  return [200, { version: next.version, commit: out.commit.sha, changes, site: cfg.site + (cfg.sitePath || '') }];
+  const programs = await rebuildPrograms(env);
+  return [200, { version: next.version, commit: out.commit.sha, changes, site: cfg.site + (cfg.sitePath || ''), programs }];
+}
+
+// The LOI, comparison and Founder's Circle PDFs on programs.bopaero.com are built from the live
+// costings. Start their rebuild now instead of waiting for the scheduled check (which GitHub runs
+// hours apart): refresh.yml waits until this costing is live on its site, then runs Publish.
+// Never fails the costing publish; the scheduled check still catches anything missed.
+async function rebuildPrograms(env) {
+  try {
+    const r = await gh(env, PROGRAMS, '/actions/workflows/refresh.yml/dispatches', {
+      method: 'POST', body: JSON.stringify({ ref: 'main', inputs: { wait_minutes: '20' } })
+    });
+    return r.status === 204 ? 'rebuilding' : 'scheduled (rebuild not started: HTTP ' + r.status + ')';
+  } catch (e) {
+    return 'scheduled (rebuild not started: ' + (e.message || e) + ')';
+  }
 }
 
 async function status(commit, env, cfg) {

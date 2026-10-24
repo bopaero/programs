@@ -19,7 +19,8 @@ the admin Worker's `/comparison/`.
   refuses to publish unless each PDF has its exact page count, its version stamp on every page, all
   documents agree on the source versions, and nothing leaked (`undefined`, error text, a figure on
   the Insert). New versions are archived to `versions/` and committed `[skip ci]`.
-- **Refresh** (`.github/workflows/refresh.yml`): every 15 min, compares the live SF50 and SR22T
+- **Refresh** (`.github/workflows/refresh.yml`): started by the costing editor right after a publish
+  (it waits for the costing to go live), and on a 15-min schedule as backup (GitHub runs it hours apart). Compares the live SF50 and SR22T
   costing versions with `data/build.json` and runs Publish when either changed (a comparison
   publish commits here, so Publish runs directly).
 - Local check: `python3 tools/build-pdf.py --check` (needs Chrome + poppler).
@@ -61,6 +62,9 @@ here) · `/founders` Founder's Circle Summary · `/planning` planning guide.
 - Verifies the Access JWT itself and fails closed until `ACCESS_TEAM_DOMAIN` / `ACCESS_AUD` are set
   (`admin/wrangler.toml`; the AUD is the `kid` in an unauthenticated request's login redirect).
 - Secret `GITHUB_TOKEN`: ONE fine-grained token, Contents read/write + Actions read on
-  sf50Program, sr22tProgram and programs. Set with `pbpaste | npx wrangler secret put GITHUB_TOKEN`
+  sf50Program, sr22tProgram and programs, plus Actions **write** on programs: a costing publish starts
+  `refresh.yml` (wait_minutes 20), which waits for the costing to go live and runs Publish, so the
+  LOI, comparison and Founder's Circle PDFs follow within minutes (2026-10-24). Without that permission
+  the publish still succeeds and the editor reports the rebuild as scheduled. Set with `pbpaste | npx wrangler secret put GITHUB_TOKEN`
   (from `admin/`). Never type it on a command line.
 - `admin/legacy/`: the old `sf50-costing` name, deployed as a 301 redirect to this Worker.

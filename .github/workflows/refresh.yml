@@ -6,10 +6,17 @@ name: Refresh
 # source is newer than the one this site was last built from (data/build.json) and, if
 # so, runs Publish. Only this repo's own GITHUB_TOKEN is involved (Raymond prefers no
 # new long-lived tokens; decided 2026-10-16).
+# GitHub runs that schedule hours apart in practice, so since 2026-10-24 the costing editor
+# (bopaero-admin Worker) also starts this right after a costing publish, with wait_minutes: it
+# polls until the new costing is live on its site, then runs Publish. The schedule stays as backup.
 on:
   schedule:
     - cron: '7,22,37,52 * * * *'
   workflow_dispatch:
+    inputs:
+      wait_minutes:
+        description: 'Keep checking this long for a source to change (0 = check once)'
+        default: '0'
 
 permissions:
   actions: write      # start the Publish workflow
@@ -23,16 +30,25 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          WAIT_MINUTES: ${{ inputs.wait_minutes || '0' }}
         run: |
-          t=$(date +%s)
-          v() { curl -fsS "$1?t=$t" | python3 -c "import json,sys;print(json.load(sys.stdin)['version'])"; }
-          live="sf50=$(v https://sf50program.bopaero.com/data/costing.json) sr22t=$(v https://sr22tprogram.bopaero.com/data/costing.json)"
-          built=$(curl -fsS "https://programs.bopaero.com/data/build.json?t=$t" | python3 -c "import json,sys;b=json.load(sys.stdin);print('sf50=%s sr22t=%s'%(b.get('sf50'),b.get('sr22t')))" || echo "unknown")
-          echo "live:  $live"
-          echo "built: $built"
-          case "$live" in *=\ *|*=) echo "Could not read a live source"; exit 1;; esac
-          if [ "$live" = "$built" ]; then echo "Up to date."; exit 0; fi
-          busy=$(gh run list --workflow publish.yml --limit 5 --json status -q '[.[] | select(.status != "completed")] | length')
-          if [ "$busy" != "0" ]; then echo "A Publish run is already in progress; it will pick up the new sources."; exit 0; fi
+          v() { curl -fsS "$1?t=$(date +%s)" | python3 -c "import json,sys;print(json.load(sys.stdin)['version'])"; }
+          deadline=$(( $(date +%s) + WAIT_MINUTES * 60 ))
+          while :; do
+            live="sf50=$(v https://sf50program.bopaero.com/data/costing.json) sr22t=$(v https://sr22tprogram.bopaero.com/data/costing.json)"
+            built=$(curl -fsS "https://programs.bopaero.com/data/build.json?t=$(date +%s)" | python3 -c "import json,sys;b=json.load(sys.stdin);print('sf50=%s sr22t=%s'%(b.get('sf50'),b.get('sr22t')))" || echo "unknown")
+            echo "live:  $live"
+            echo "built: $built"
+            case "$live" in *=\ *|*=) echo "Could not read a live source"; exit 1;; esac
+            [ "$live" != "$built" ] && break
+            if [ "$(date +%s)" -ge "$deadline" ]; then echo "Up to date."; exit 0; fi
+            echo "Waiting for the new costing to go live..."; sleep 30
+          done
+          # Started by the editor: the new costing is live now, so always rebuild (Publish cancels
+          # an older run still in progress, which may have read the previous costing)
+          if [ "$WAIT_MINUTES" = "0" ]; then
+            busy=$(gh run list --workflow publish.yml --limit 5 --json status -q '[.[] | select(.status != "completed")] | length')
+            if [ "$busy" != "0" ]; then echo "A Publish run is already in progress; it will pick up the new sources."; exit 0; fi
+          fi
           gh workflow run publish.yml --ref main
           echo "Started Publish."
