@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: write     # archive versions/*.pdf
+  issues: write       # tell Raymond when the LOI changed (his DocuSign template holds a copy)
   pages: write
   id-token: write
 
@@ -57,8 +58,44 @@ jobs:
             git push
           fi
 
+      - name: Note the live LOI before replacing it
+        run: curl -fsS -o /tmp/loi-live.pdf "https://programs.bopaero.com/bop-Aero-Letter-of-Intent.pdf?t=$(date +%s)" || rm -f /tmp/loi-live.pdf
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
       - id: deploy
         uses: actions/deploy-pages@v4
+
+      # The DocuSign template keeps its own copy of the LOI PDF (Raymond 2026-10-24), so every
+      # deployed change to it (wording or either costing) opens an issue, which GitHub emails him
+      - name: Tell Raymond to replace the LOI in the DocuSign template
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          stamp() { pdftotext "$1" - 2>/dev/null | grep -m1 -oE 'LOI v[0-9.-]+ · SR22T v[0-9.-]+ · SF50 v[0-9.-]+'; }
+          tags() { pdftotext "$1" - 2>/dev/null | grep -oE '\\[om]_[a-z0-9_]+\\' | sort; }
+          new=$(stamp _site/bop-Aero-Letter-of-Intent.pdf)
+          old=$( [ -f /tmp/loi-live.pdf ] && stamp /tmp/loi-live.pdf || echo "unknown")
+          echo "LOI before: $old"; echo "LOI now:    $new"
+          [ "$new" = "$old" ] && { echo "LOI unchanged."; exit 0; }
+          added=$(comm -13 <( [ -f /tmp/loi-live.pdf ] && tags /tmp/loi-live.pdf ) <(tags _site/bop-Aero-Letter-of-Intent.pdf) | tr '\n' ' ')
+          removed=$(comm -23 <( [ -f /tmp/loi-live.pdf ] && tags /tmp/loi-live.pdf ) <(tags _site/bop-Aero-Letter-of-Intent.pdf) | tr '\n' ' ')
+          {
+            echo "The Letter of Intent PDF changed, so the copy in the DocuSign LOI template is out of date."
+            echo
+            echo "- Was: \`$old\`"
+            echo "- Now: \`$new\`"
+            echo
+            echo "**To do:** download https://programs.bopaero.com/bop-Aero-Letter-of-Intent.pdf and replace the document in the DocuSign template. The fields are placed by the anchor tags, so they follow the new layout."
+            if [ -n "$added$removed" ]; then
+              echo
+              echo "**The fields changed.** Add or delete these fields in the template:"
+              [ -n "$added" ] && echo "- New tags: \`$added\`"
+              [ -n "$removed" ] && echo "- Gone: \`$removed\`"
+            fi
+            echo
+            echo "Close this issue once the template is updated."
+          } > /tmp/body.md
+          gh issue create --title "Replace the LOI in the DocuSign template (${new%% ·*})" --body-file /tmp/body.md

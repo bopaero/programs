@@ -47,6 +47,9 @@ DOCS = [
      r'LOI %s · SR22T %s · SF50 %s' % (V, V, V), ('loi', 'sr22t', 'sf50'),
      lambda v: '%s-loi-sf50-%s-sr22t-%s.pdf' % (v['loi'], v['sf50'], v['sr22t'])),
 ]
+# Every DocuSign anchor tag in the LOI except the program checkboxes (\\o_pg_<aircraft>_<key>\\, one per program)
+LOI_TAGS = ['m_eff', 'm_effyr', 'o_name', 'o_shares', 'o_pay1', 'o_pay2', 'o_fc', 'm_exp', 'm_expyr',
+            'o_sig', 'o_printname', 'o_date', 'm_sig', 'm_printname', 'm_title', 'm_date', 'o_attach']
 MAC_CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 
 
@@ -110,6 +113,17 @@ def main():
         # The Insert carries the program, never its figures (Raymond 2026-10-16): those are on the Detail Sheet
         if page == 'founders-insert.html' and re.search(r'\$\s*\d|\d\s*%', text):
             bad.append('the Insert shows a financial figure: ' + re.search(r'.{0,40}(\$\s*\d|\d\s*%).{0,20}', text).group(0).strip())
+        # DocuSign anchor tags (added 2026-10-24): the template's Auto-Place fields need every one, once
+        if page == 'loi.html':
+            tags = re.findall(r'\\([om]_[a-z0-9_]+)\\', text)
+            missing = sorted(set(LOI_TAGS) - set(tags))
+            if missing:
+                bad.append('DocuSign tags missing: ' + ', '.join(missing))
+            if not any(t.startswith('o_pg_') for t in tags):
+                bad.append('no program checkbox carries a DocuSign tag')
+            twice = sorted(set(t for t in tags if tags.count(t) > 1))
+            if twice:
+                bad.append('DocuSign tags appear more than once: ' + ', '.join(twice))
         if 'could not be displayed' in text:
             bad.append('the page reported an error: ' + text.strip().splitlines()[0][:200])
         leaks = sorted(set(re.findall(r'undefined|NaN|Infinity|\[object Object\]|native code|function\s*\w*\(', text)))

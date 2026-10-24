@@ -26,6 +26,28 @@ the admin Worker's `/comparison/`.
 - Wording change to the LOI → bump `LOI_VERSION`. A program added to either costing appears in the
   LOI by itself; a new aircraft type is one entry in `AIRCRAFT` in `loi.html`.
 
+## LOI in DocuSign (2026-10-24)
+
+The LOI PDF carries an invisible DocuSign anchor tag at every field (white 5pt text painted under the
+page's ink, PDF only: the website never shows them). Raymond's DocuSign template places each field
+with Auto-Place on its tag, so replacing the template's document keeps the fields in place.
+`build-pdf.py` refuses a PDF unless every tag appears exactly once. Every deployed change to the
+LOI PDF (wording or either costing) opens an issue asking Raymond to replace the template's document;
+it lists any tags that were added or removed.
+
+| Tag | Role | DocuSign field |
+|---|---|---|
+| `\m_eff\` `\m_effyr\` | Manager | Effective Date (month/day, year) |
+| `\o_name\` | Prospective Owner | Prospective Owner name (text) |
+| `\o_pg_<aircraft>_<key>\` | Prospective Owner | One checkbox per program, e.g. `\o_pg_sf50_g2plus\`, `\o_pg_sr22t_g7plus\` |
+| `\o_shares\` | Prospective Owner | Ownership Shares Selected (number) |
+| `\o_pay1\` `\o_pay2\` | Prospective Owner | SR22T payment option (radio group) |
+| `\o_fc\` | Prospective Owner | Founder's Circle (checkbox) |
+| `\m_exp\` `\m_expyr\` | Manager | Expiration date (month/day, year) |
+| `\o_sig\` `\o_printname\` `\o_date\` | Prospective Owner | Signature, Full Name, Date Signed |
+| `\m_sig\` `\m_printname\` `\m_title\` `\m_date\` | Manager | Signature, Full Name, Title, Date Signed |
+| `\o_attach\` | Prospective Owner | Attachment A (attachment field, optional) |
+
 ## Admin Worker (`admin/`)
 
 `bopaero-admin` at https://bopaero-admin.compilotrc.workers.dev — every private editor behind one

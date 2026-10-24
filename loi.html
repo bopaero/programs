@@ -10,6 +10,10 @@
     - a new aircraft type is one entry in AIRCRAFT below (its site + costing library).
   A publish of either costing rebuilds this page through .github/workflows/refresh.yml.
   Change the wording → bump LOI_VERSION. Every page is stamped with all three versions.
+  DocuSign (2026-10-24): every field carries an invisible anchor tag (\o_…\ = Prospective Owner,
+  \m_…\ = Manager) in the PDF only, so the DocuSign template's Auto-Place fields find them on any
+  version. A program's checkbox tag is built from its key (\o_pg_sf50_g2plus\). build-pdf.py
+  refuses a PDF unless every expected tag appears exactly once.
 -->
 <html lang="en">
 <head>
@@ -22,14 +26,14 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body { background: #e9e9ec; color: var(--ink); font-family: "Times New Roman", Times, serif; font-size: 11.5pt; line-height: 1.38; }
-main { background:#fff; max-width: 8.5in; margin: 20px auto; padding: 0.7in 0.75in 0.8in; box-shadow:0 2px 14px rgba(0,0,0,.12); }
+main { position: relative; z-index: 0; background:#fff; max-width: 8.5in; margin: 20px auto; padding: 0.7in 0.75in 0.8in; box-shadow:0 2px 14px rgba(0,0,0,.12); }
 h1 { text-align:center; color: var(--navy); font-size: 19pt; margin: 0; letter-spacing: .02em; }
 .subtitle { text-align:center; color: #4a5470; font-weight: bold; font-size: 11.5pt; margin: 4px 0 22px; letter-spacing: .04em; }
 h2 { color: var(--navy); font-size: 12.5pt; margin: 18px 0 6px; break-after: avoid; }
 p { margin: 0 0 8px; text-align: justify; }
 .parties { background: var(--shade); padding: 8px 14px; margin: 10px 0 14px; }
 .parties p { margin: 4px 0; text-align: left; }
-.blank { display:inline-block; border-bottom: 1px solid #000; min-width: 2.2in; height: 1em; vertical-align: baseline; }
+.blank { position: relative; display:inline-block; border-bottom: 1px solid #000; min-width: 2.2in; height: 1em; vertical-align: baseline; }
 .blank.s { min-width: 1in; } .blank.l { min-width: 3.6in; }
 table { width: 100%; border-collapse: collapse; margin: 6px 0 10px; font-size: 10.5pt; break-inside: auto; }
 th { background: var(--shade); color: var(--navy); text-align: left; padding: 5px 6px; font-size: 10pt; }
@@ -44,18 +48,25 @@ li { margin: 0 0 4px; text-align: justify; }
 .keep { break-inside: avoid; }
 .sig { display:grid; grid-template-columns: 1fr 1fr; gap: 36px; margin-top: 22px; break-inside: avoid; }
 .sig h3 { font-size: 11pt; margin: 0 0 26px; }
-.sig .line { border-bottom: 1px solid #000; height: 26px; margin-bottom: 2px; }
+.sig .line { position: relative; border-bottom: 1px solid #000; height: 26px; margin-bottom: 2px; }
 .sig .lab { font-size: 10pt; margin-bottom: 14px; }
 .attach { break-before: page; text-align: center; }
 .attach h2 { text-align:center; margin-top: 0; }
 .attach .drop { border: 1px dashed #888; padding: 28px 20px; margin: 18px 0; font-style: italic; }
 .stamp { text-align: right; font-size: 8pt; color: var(--muted); font-family: Arial, sans-serif; margin-top: 18px; }
 .err { color:#b91c1c; padding: 20px; }
+/* DocuSign anchor tags: PDF only, white, and painted UNDER the page's ink (z-index -1 inside main's
+   stacking context) so a tag never erases a line or a letter it overlaps */
+.ds { display: none; }
+.cb { position: relative; }
+.attach .drop { position: relative; }
 @page { size: letter; margin: 0.7in 0.75in 0.75in; }
 @media print {
   body { background:#fff; }
   main { max-width:none; margin:0; padding:0; box-shadow:none; }
   .stamp { display: none; }   /* printed in the page margin instead (see render) */
+  .ds { display: inline; position: absolute; z-index: -1; left: 0; bottom: 2px; color: #fff; font: 5pt Arial, sans-serif; line-height: 1; white-space: nowrap; }
+  .cb .ds, .drop .ds { bottom: auto; top: 0; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 @media (max-width: 640px) { main { padding: 20px 16px; } .sig { grid-template-columns: 1fr; } table { font-size: 9.5pt; } .blank, .blank.l { min-width: 1.6in; } }
@@ -67,7 +78,7 @@ li { margin: 0 0 4px; text-align: justify; }
 <script src="https://sr22tprogram.bopaero.com/assets/costing.js"></script>
 <script>
 // Version of the LOI WORDING. Bump it whenever the text below changes (figures follow the costings).
-var LOI_VERSION = 'v2026-10-21.3';
+var LOI_VERSION = 'v2026-10-24.1';
 var SR22T_SITE = 'https://sr22tprogram.bopaero.com', SF50_SITE = 'https://sf50program.bopaero.com';
 
 // The aircraft offered, in the order the LOI lists them. A new aircraft type = one entry here.
@@ -94,17 +105,23 @@ function pct(x) { return (x * 100).toFixed(2) + '%'; }
 function esc(s) { return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
 var WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen'];
 function count(n) { return (WORDS[n] || String(n)) + ' (' + n + ')'; }
-function blank(cls) { return '<span class="blank' + (cls ? ' ' + cls : '') + '"></span>'; }
+// DocuSign anchor tag: \o_…\ for the Prospective Owner, \m_…\ for Manager (see the header comment)
+var TAGS = [];
+function ds(tag) { TAGS.push(tag); return '<span class="ds">\\' + tag + '\\</span>'; }
+function blank(cls, tag) { return '<span class="blank' + (cls ? ' ' + cls : '') + '">' + (tag ? ds(tag) : '') + '</span>'; }
+function box(tag) { return '<span class="cb">☐' + ds(tag) + '</span>'; }
+function slug(s) { return String(s).toLowerCase().replace(/\+/g, 'plus').replace(/[^a-z0-9]/g, ''); }
 
 function render(sets) {
   var rows2 = '', rows3 = '', fc = [], bridge = null, stamp = 'LOI ' + LOI_VERSION;
+  TAGS = [];
   sets.forEach(function (s) {
     var d = s.derived, list = order(d.programs);
     stamp += ' · ' + s.a.name.replace('Cirrus ', '') + ' ' + d.version;
     list.forEach(function (p) {
       var x = s.a.describe(p, d), t = p.approx ? '~' : '';
       var label = s.a.name + ' ' + p.key;
-      rows2 += '<tr><td class="box">☐</td><td><b>' + esc(label) + '</b><br>' + esc(x.aircraft) + '</td>' +
+      rows2 += '<tr><td class="box">' + box('o_pg_' + slug(s.a.short) + '_' + slug(p.key)) + '</td><td><b>' + esc(label) + '</b><br>' + esc(x.aircraft) + '</td>' +
         '<td class="n">' + p.sharesRemaining + ' of ' + p.shares + '</td>' +
         '<td class="n">' + p.unitsPerShare + ' of ' + p.totalUnits + ' units<br><span class="small">(' + pct(p.equity) + ')</span></td>' +
         '<td>' + esc(x.use) + '</td></tr>';
@@ -118,10 +135,10 @@ function render(sets) {
   var html =
     '<h1>LETTER OF INTENT</h1>' +
     '<div class="subtitle">AIRCRAFT OWNERSHIP PROGRAM</div>' +
-    '<p><b>Effective Date:</b> ' + blank() + ', 20' + blank('s') + '</p>' +
+    '<p><b>Effective Date:</b> ' + blank('', 'm_eff') + ', 20' + blank('s', 'm_effyr') + '</p>' +
     '<div class="parties">' +
       '<p><b>Manager:</b> BOP AERO SERVICES LLC, a Kentucky limited liability company, or its designated aircraft ownership affiliate ("Manager").</p>' +
-      '<p><b>Prospective Owner:</b> ' + blank('l') + ' ("Prospective Owner").</p>' +
+      '<p><b>Prospective Owner:</b> ' + blank('l', 'o_name') + ' ("Prospective Owner").</p>' +
     '</div>' +
 
     '<h2>1. Purpose &amp; Core Intent</h2>' +
@@ -131,16 +148,16 @@ function render(sets) {
     '<p>Prospective Owner expresses a good-faith intent to acquire one or more ownership shares in the program selected below, in accordance with the following initial parameters:</p>' +
     '<table><thead><tr><th></th><th>Aircraft Ownership Program</th><th class="n">Shares available</th><th class="n">Ownership per share</th><th>Scheduling per share</th></tr></thead><tbody>' + rows2 + '</tbody></table>' +
     '<p class="small">Each program aircraft is divided into ownership units. Each share holds the units shown, and Manager retains one (1) unit in each program aircraft. Unit counts are distinct from the number of legal owners and remain subject to final legal review.</p>' +
-    '<p><b>Ownership Shares Selected:</b> ' + blank() + ' ownership share(s)</p>' +
+    '<p><b>Ownership Shares Selected:</b> ' + blank('', 'o_shares') + ' ownership share(s)</p>' +
     (bridge ?
       '<div class="keep"><p><b>' + esc(bridge.a.short) + ' payment option</b> (' + esc(bridge.a.short) + ' shares only):</p>' +
       '<table><tbody>' +
-        '<tr><td class="box">☐</td><td><b>Option 1 — New aircraft, program pre-pay.</b> Full Owner Investment for the new ' + esc(bridge.a.name + ' ' + bridge.p.key) + ' at closing; the share may be flown on the ' + esc(bridge.b.model) + ' bridge aircraft until the new aircraft is delivered.</td></tr>' +
-        '<tr><td class="box">☐</td><td><b>Option 2 — Bridge aircraft, program post-pay.</b> A smaller initial Owner Investment in the ' + esc(bridge.b.model) + ' bridge aircraft, with the remaining capital requirement due when the new aircraft is purchased.</td></tr>' +
+        '<tr><td class="box">' + box('o_pay1') + '</td><td><b>Option 1 — New aircraft, program pre-pay.</b> Full Owner Investment for the new ' + esc(bridge.a.name + ' ' + bridge.p.key) + ' at closing; the share may be flown on the ' + esc(bridge.b.model) + ' bridge aircraft until the new aircraft is delivered.</td></tr>' +
+        '<tr><td class="box">' + box('o_pay2') + '</td><td><b>Option 2 — Bridge aircraft, program post-pay.</b> A smaller initial Owner Investment in the ' + esc(bridge.b.model) + ' bridge aircraft, with the remaining capital requirement due when the new aircraft is purchased.</td></tr>' +
         '<tr><td></td><td class="small">Under either option, the Annual Program Fee is the ' + esc(bridge.a.name + ' ' + bridge.p.key) + ' Annual Program Fee shown in Section 3.</td></tr>' +
       '</tbody></table></div>' : '') +
     (fc.length ?
-      '<table><tbody><tr><td class="box">☐</td><td><b>Founder’s Circle (optional add-on).</b> Prospective Owner wishes to be considered for a Founder’s Circle position, offered on ' +
+      '<table><tbody><tr><td class="box">' + box('o_fc') + '</td><td><b>Founder’s Circle (optional add-on).</b> Prospective Owner wishes to be considered for a Founder’s Circle position, offered on ' +
         fc.map(function (f) { return count(f.p.founders.positions) + ' shares of each ' + esc(f.label); }).join(' and ') +
         ', subject to availability when definitive agreements are executed.</td></tr></tbody></table>' : '') +
 
@@ -202,26 +219,26 @@ function render(sets) {
 
     '<div class="keep">' +
     '<h2>10. Expiration</h2>' +
-    '<p>Unless mutually extended or renewed in writing by both parties, this Letter of Intent shall automatically expire and become null and void at 5:00 PM Eastern Time on ' + blank() + ', 20' + blank('s') + ', after which neither party shall have any ongoing obligation to the other except under the surviving provisions identified in Section 7. Unless definitive agreements have been executed, any reserved owner position under Section 2A shall terminate upon expiration.</p>' +
+    '<p>Unless mutually extended or renewed in writing by both parties, this Letter of Intent shall automatically expire and become null and void at 5:00 PM Eastern Time on ' + blank('', 'm_exp') + ', 20' + blank('s', 'm_expyr') + ', after which neither party shall have any ongoing obligation to the other except under the surviving provisions identified in Section 7. Unless definitive agreements have been executed, any reserved owner position under Section 2A shall terminate upon expiration.</p>' +
 
       '<p>IN WITNESS WHEREOF, the parties hereto have executed this Letter of Intent as of the date written below.</p>' +
       '<div class="sig">' +
         '<div><h3>PROSPECTIVE OWNER:</h3>' +
-          '<div class="line"></div><div class="lab">Signature</div>' +
-          '<div class="line"></div><div class="lab">Printed Name</div>' +
-          '<div class="line"></div><div class="lab">Date</div></div>' +
+          '<div class="line">' + ds('o_sig') + '</div><div class="lab">Signature</div>' +
+          '<div class="line">' + ds('o_printname') + '</div><div class="lab">Printed Name</div>' +
+          '<div class="line">' + ds('o_date') + '</div><div class="lab">Date</div></div>' +
         '<div><h3>BOP AERO SERVICES LLC:</h3>' +
-          '<div class="line"></div><div class="lab">By</div>' +
-          '<div class="line"></div><div class="lab">Printed Name</div>' +
-          '<div class="line"></div><div class="lab">Title</div>' +
-          '<div class="line"></div><div class="lab">Date</div></div>' +
+          '<div class="line">' + ds('m_sig') + '</div><div class="lab">By</div>' +
+          '<div class="line">' + ds('m_printname') + '</div><div class="lab">Printed Name</div>' +
+          '<div class="line">' + ds('m_title') + '</div><div class="lab">Title</div>' +
+          '<div class="line">' + ds('m_date') + '</div><div class="lab">Date</div></div>' +
       '</div>' +
     '</div>' +
 
     '<section class="attach">' +
       '<h2>ATTACHMENT A<br>FINANCIAL QUALIFICATION REQUIREMENT</h2>' +
       '<p style="text-align:center">In lieu of completing a Personal Financial Statement (PFS), Prospective Owner may substitute a formal Verification Letter signed by an authorized Officer of a Financial Institution or a Certified Public Accountant (CPA) verifying transaction suitability.</p>' +
-      '<div class="drop">Please securely attach your preferred financial validation documentation or standard Personal Financial Statement here.</div>' +
+      '<div class="drop">' + ds('o_attach') + 'Please securely attach your preferred financial validation documentation or standard Personal Financial Statement here.</div>' +
       '<p class="small" style="text-align:center">All data attached remains strictly subject to the binding Data Protection, Strict Confidentiality, and Mandatory Return/Destruction policies set forth in Sections 4 and 8 of this Letter of Intent.</p>' +
     '</section>' +
     '<div class="stamp">' + esc(stamp) + '</div>';
@@ -235,6 +252,7 @@ function render(sets) {
   var versions = { loi: LOI_VERSION };
   sets.forEach(function (s) { versions[s.a.name.replace('Cirrus ', '').toLowerCase()] = s.derived.version; });
   document.documentElement.setAttribute('data-versions', JSON.stringify(versions));
+  document.documentElement.setAttribute('data-ds-tags', JSON.stringify(TAGS));   // build-pdf.py checks each is in the PDF once
   document.documentElement.setAttribute('data-rendered', LOI_VERSION);   // build-pdf.py waits for this
 }
 
